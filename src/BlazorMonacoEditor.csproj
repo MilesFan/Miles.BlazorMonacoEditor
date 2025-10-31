@@ -1,13 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Title>Blazor Monaco Editor</Title>
     <Authors>Fan Xing Hua</Authors>
-	<Version>1.0.7</Version>
+	<Version>1.0.8</Version>
     <Description>A Blazor wrapper for Microsoft Monaco Editor.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/MilesFan/Miles.BlazorMonacoEditor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MilesFan/Miles.BlazorMonacoEditor</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,13 +21,27 @@
     <None Remove="Example\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.19" />
-  </ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.12" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.1" />
+	</ItemGroup>
 
 </Project>
