@@ -1,0 +1,229 @@
+﻿@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime js
+@implements IAsyncDisposable
+@inject NavigationManager nav
+<div id="@elementId" style="font-size:revert;@Style" class="@Class"></div>
+
+@code {
+    /// <summary>
+    /// The initial code for the editor when loaded.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string? Code { get; set; }
+
+    /// <summary>
+    /// The language of the code.
+    /// For example, "javascript", "csharp", "c".
+    /// 
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string CodeLanguage { get; set; }
+
+    [Parameter]
+    public string? ExtraLib { get; set; }
+
+    [Parameter]
+    public string Style { get; set; } = "height:600px;width:100%;";
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    private string elementId = "monaco_container_" + Guid.NewGuid().ToString();
+
+    private IJSObjectReference? editor;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitMonacoEditor();
+        }
+    }
+
+    /// <summary>
+    /// Get the modified code.
+    /// </summary>
+    /// <returns>code</returns>
+    public async Task<string?> GetValue()
+    {
+        try
+        {
+            if (editor == null) return null;
+            var value = await editor.InvokeAsync<string?>("getValue");
+            return value;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (editor == null) return;
+            await editor.InvokeVoidAsync("dispose");
+            await editor.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            //Console.WriteLine("Error in disposing Monaco Editor.");
+        }
+    }
+
+    private async Task InitMonacoEditor()
+    {
+        var packagename = this.GetType().Namespace;
+        var s = @"
+(async () => {
+try
+{
+    let require_ready = !(typeof require === 'undefined' || require === null);
+    if (!require_ready)
+    {
+        let script = document.createElement('script');
+        script.src = '" + nav.BaseUri + "_content/" + packagename + @"/monaco-editor/min/vs/loader.js';
+        script.type = 'text/javascript';
+        script.onload = ()=>require_ready = true;
+        script.onerror = function() {
+            console.error(`Failed to load script: ${src}`);
+        };
+        document.body.appendChild(script);
+    }
+    while(!require_ready)
+    {
+        await new Promise(r => setTimeout(r, 100));
+    }
+    let monaco_editor_ready = !((typeof monaco === 'undefined' || monaco === null));
+    if (!monaco_editor_ready)
+    {
+        require.config({ paths: { 'vs': '" + nav.BaseUri + "_content/" + packagename + @"/monaco-editor/min/vs' } });
+        require(['vs/editor/editor.main'], ()=>monaco_editor_ready = true);
+    }
+    while(!monaco_editor_ready)
+    {
+        await new Promise(r => setTimeout(r, 100));
+    };
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(`" + ExtraLib + @"`);
+    let editor = monaco.editor.create(document.getElementById('" + elementId + @"'), {
+        value: '',
+        language: '" + CodeLanguage + @"',
+        theme: 'vs-dark',
+        minimap: {
+            enabled: false
+        },
+        fontSize: 14,
+        codeLens: false,
+        overviewRulerLanes: 0,
+        hideCursorInOverviewRuler: true,
+        fontLigatures: ''
+    });
+
+    return editor;
+}
+catch(e)
+{
+    console.error(e);
+    return null;
+}
+})()";
+        try
+        {
+            editor = await js.InvokeAsync<IJSObjectReference>("eval", s);
+            if (editor == null)
+            {
+                await js.InvokeVoidAsync("alert", "Code Editor Initialization Error.");
+            }
+            else
+            {
+                await editor.InvokeVoidAsync("setValue", Code);
+            }
+        }
+        catch (Exception)
+        {
+            await js.InvokeVoidAsync("alert", "Code Editor Initialization Error.");
+        }
+    }
+
+    private async Task<IJSObjectReference> GetValidator()
+    {
+        var func = @"
+(() => {
+    let validator = {
+        validate: function(editor) {
+            const model = editor.getModel();
+            const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+
+            const validationResult = {
+                isValid: true,
+                errors: [],
+                warnings: [],
+                infos: [],
+                isValidSyntax: true,
+                errorDetails: []
+            };
+
+            markers.forEach(marker => {
+                const errorInfo = {
+                    message: marker.message,
+                    startLineNumber: marker.startLineNumber,
+                    startColumn: marker.startColumn,
+                    endLineNumber: marker.endLineNumber,
+                    endColumn: marker.endColumn,
+                    severity: marker.severity
+                };
+
+                validationResult.errorDetails.push(errorInfo);
+
+                switch(marker.severity) {
+                    case monaco.MarkerSeverity.Error:
+                        validationResult.errors.push(errorInfo);
+                        validationResult.isValid = false;
+                        validationResult.isValidSyntax = false;
+                        break;
+                    case monaco.MarkerSeverity.Warning:
+                        validationResult.warnings.push(errorInfo);
+                        break;
+                    case monaco.MarkerSeverity.Info:
+                        validationResult.infos.push(errorInfo);
+                        break;
+                }
+            });
+
+            return validationResult;
+        }
+    };
+    return validator;
+})()";
+        var validator = await js.InvokeAsync<IJSObjectReference>("eval", func);
+        return validator;
+    }
+    public class ValidationResult
+    {
+        public bool isValid { get; set; }
+        public ErrorInfo[]? errors { get; set; }
+        public ErrorInfo[]? warnings { get; set; }
+        public ErrorInfo[]? infos { get; set; }
+        public bool isValidSyntax { get; set; }
+        public ErrorInfo[]? errorDetails { get; set; }
+    }
+    public class ErrorInfo
+    {
+        public string? message { get; set; }
+        public int startLineNumber { get; set; }
+        public int startColumn { get; set; }
+        public int endLineNumber { get; set; }
+        public int endColumn { get; set; }
+        public int severity { get; set; }
+    }
+    public async Task<ValidationResult?> Validate()
+    {
+        var validator = await GetValidator();
+        var result = await validator.InvokeAsync<ValidationResult>("validate", editor);
+        _ = validator.DisposeAsync();
+        return result;
+    }
+}
+

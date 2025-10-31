@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Title>Blazor Monaco Editor</Title>
+    <Authors>Fan Xing Hua</Authors>
+	<Version>1.0.6</Version>
+    <Description>A Blazor wrapper for Microsoft Monaco Editor.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Example\**" />
+    <Content Remove="Example\**" />
+    <EmbeddedResource Remove="Example\**" />
+    <None Remove="Example\**" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.19" />
+  </ItemGroup>
+
+</Project>

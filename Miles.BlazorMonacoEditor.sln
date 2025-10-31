@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Miles.BlazorMonacoEditor", "Miles.BlazorMonacoEditor.csproj", "{2B8DA639-24E9-4C6D-82A6-ECC99E0D1D23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{40857197-8FA6-4E38-A4C1-77D102549292}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2B8DA639-24E9-4C6D-82A6-ECC99E0D1D23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B8DA639-24E9-4C6D-82A6-ECC99E0D1D23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B8DA639-24E9-4C6D-82A6-ECC99E0D1D23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B8DA639-24E9-4C6D-82A6-ECC99E0D1D23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40857197-8FA6-4E38-A4C1-77D102549292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40857197-8FA6-4E38-A4C1-77D102549292}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40857197-8FA6-4E38-A4C1-77D102549292}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40857197-8FA6-4E38-A4C1-77D102549292}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {60DBDBEC-8905-4CC8-BB83-AD566CAE7A80}
+	EndGlobalSection
+EndGlobal

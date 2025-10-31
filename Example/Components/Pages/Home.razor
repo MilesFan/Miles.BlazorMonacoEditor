@@ -1,0 +1,63 @@
+﻿@page "/"
+@using Miles.BlazorMonacoEditor
+@rendermode InteractiveServer
+
+
+<CodeEditor @ref="editor" Code="@Code" CodeLanguage="javascript" ExtraLib="@extraLib" />
+<div>
+    <button @onclick="ValidateCode">Validate Code</button>
+</div>
+<div>
+<textarea @bind="validationResult" rows="10" cols="20" />
+</div>
+
+@code {
+    private CodeEditor editor = default!;
+    private string Code =
+@"let a = 1;
+let b = $R_ROD_N;
+let c = a + b;
+if ( c > 4)
+{
+    raiseError(""在危险边缘试探"");
+}
+else
+{
+    raiseError(""出事了"");
+}
+";
+    private string extraLib = @"
+/**
+ * R_ROD_N: 电抗器拉杆数量
+ */
+declare var $R_ROD_X: number;
+
+/**
+ * 产生一个校验错误记录
+ * @param message - 错误消息
+ * @returns 结果
+ */
+declare function raiseError(message: string): number;
+
+/**
+ * 产生一个校验警告记录
+ * @param message - 警告消息
+ * @returns 结果
+ */
+declare function raiseWarning(message: string): number;
+
+";
+    private string? validationResult;
+
+    private async Task ValidateCode()
+    {
+        var result = await editor.Validate();
+        validationResult = System.Text.Json.JsonSerializer.Serialize(
+            result,
+            new System.Text.Json.JsonSerializerOptions {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            }
+        );
+    }
+}
