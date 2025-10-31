@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Title>Blazor Monaco Editor</Title>
     <Authors>Fan Xing Hua</Authors>
-	<Version>1.0.6</Version>
+	<Version>1.0.7</Version>
     <Description>A Blazor wrapper for Microsoft Monaco Editor.</Description>
   </PropertyGroup>
 

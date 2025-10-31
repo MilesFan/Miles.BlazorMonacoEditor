@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Miles.BlazorMonacoEditor.csproj" />
+    <ProjectReference Include="..\src\BlazorMonacoEditor.csproj" />
   </ItemGroup>
 
 </Project>

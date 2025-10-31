@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Miles.BlazorMonacoEditor
+@using BlazorMonacoEditor
 @rendermode InteractiveServer
 
 
@@ -19,11 +19,11 @@ let b = $R_ROD_N;
 let c = a + b;
 if ( c > 4)
 {
-    raiseError(""在危险边缘试探"");
+    raiseError(""c might be too large"");
 }
-else
+else if (c > 5)
 {
-    raiseError(""出事了"");
+    raiseError(""c is too large"");
 }
 ";
     private string extraLib = @"
