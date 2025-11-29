@@ -3,7 +3,7 @@
 @inject IJSRuntime js
 @implements IAsyncDisposable
 @inject NavigationManager nav
-<div id="@elementId" style="font-size:revert;@Style" class="@Class"></div>
+<div @ref="element" id="@elementId" style="font-size:revert;@Style" class="@Class"></div>
 
 @code {
     /// <summary>
@@ -32,7 +32,7 @@
     private string elementId = "monaco_container_" + Guid.NewGuid().ToString();
 
     private IJSObjectReference? editor;
-
+    private ElementReference element = default!;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -75,63 +75,81 @@
 
     private async Task InitMonacoEditor()
     {
-        var packagename = this.GetType().Namespace;
-        var s = @"
-(async () => {
-try
-{
-    let require_ready = !(typeof require === 'undefined' || require === null);
-    if (!require_ready)
-    {
-        let script = document.createElement('script');
-        script.src = '" + nav.BaseUri + "_content/" + packagename + @"/monaco-editor/min/vs/loader.js';
-        script.type = 'text/javascript';
-        script.onload = ()=>require_ready = true;
-        script.onerror = function() {
-            console.error(`Failed to load script: ${src}`);
-        };
-        document.body.appendChild(script);
-    }
-    while(!require_ready)
-    {
-        await new Promise(r => setTimeout(r, 100));
-    }
-    let monaco_editor_ready = !((typeof monaco === 'undefined' || monaco === null));
-    if (!monaco_editor_ready)
-    {
-        require.config({ paths: { 'vs': '" + nav.BaseUri + "_content/" + packagename + @"/monaco-editor/min/vs' } });
-        require(['vs/editor/editor.main'], ()=>monaco_editor_ready = true);
-    }
-    while(!monaco_editor_ready)
-    {
-        await new Promise(r => setTimeout(r, 100));
-    };
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(`" + ExtraLib + @"`);
-    let editor = monaco.editor.create(document.getElementById('" + elementId + @"'), {
-        value: '',
-        language: '" + CodeLanguage + @"',
-        theme: 'vs-dark',
-        minimap: {
-            enabled: false
-        },
-        fontSize: 14,
-        codeLens: false,
-        overviewRulerLanes: 0,
-        hideCursorInOverviewRuler: true,
-        fontLigatures: ''
-    });
+        var script = @"(async () => {
+    return {
+        initEditor: async (element, baseuri, packagename, extralib, codelanguage)=>{
+            try {
+                // Load Monaco Editor if not available
+                if (typeof monaco === 'undefined') {
+                    // Load require.js if not available
+                    let require_load_error = false;
+                    if (typeof require === 'undefined') {
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = `${baseuri}_content/${packagename}/monaco-editor/min/vs/loader.js`;
+                            script.type = 'text/javascript';
+                            script.onload = resolve;
+                            script.onerror = () => {
+                                require_load_error = true;
+                                reject(new Error('Failed to load require.js script'));
+                            }
+                            document.body.appendChild(script);
+                        });
+                    }
+                    if (require_load_error) return null;
+                    // Configure require and load Monaco
+                    require.config({
+                        paths: {
+                            'vs': `${baseuri}_content/${packagename}/monaco-editor/min/vs`
+                        }
+                    });
 
-    return editor;
-}
-catch(e)
-{
-    console.error(e);
-    return null;
-}
-})()";
+                    let editor_load_error = false;
+                    await new Promise((resolve, reject) => {
+                        require(['vs/editor/editor.main'], resolve, (error) => {
+                            editor_load_error = true;
+                            reject(new Error(`Failed to load Monaco editor: ${error}`));
+                        });
+                    });
+                    if (require_load_error) return null;
+                }
+
+                // Configure TypeScript/Javascript defaults and create editor
+                if (extralib)
+                {
+                    monaco.languages.typescript.javascriptDefaults.addExtraLib(extralib);
+                }
+                const editor = monaco.editor.create(element, {
+                    value: '',
+                    language: codelanguage,
+                    theme: 'vs-dark',
+                    minimap: {
+                        enabled: false
+                    },
+                    fontSize: 14,
+                    codeLens: false,
+                    overviewRulerLanes: 0,
+                    hideCursorInOverviewRuler: true,
+                    fontLigatures: ''
+                });
+
+                return editor;
+            }
+            catch (e) {
+                console.error(e);
+                return null;
+            }
+
+
+        }
+    };
+})();";
+        var func = await js.InvokeAsync<IJSObjectReference>("eval", script);
+        var packagename = this.GetType().Namespace;
+        
         try
         {
-            editor = await js.InvokeAsync<IJSObjectReference>("eval", s);
+            editor = await func.InvokeAsync<IJSObjectReference>("initEditor", element, nav.BaseUri, packagename, ExtraLib, CodeLanguage);
             if (editor == null)
             {
                 await js.InvokeVoidAsync("alert", "Code Editor Initialization Error.");
