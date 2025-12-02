@@ -13,7 +13,7 @@
     private CodeEditor editor = default!;
     private string Code =
 @"let a = 1;
-let b = $R_ROD_N;
+let b = $Some_Builtin_Variable;
 let c = a + b;
 if ( c > 4)
 {
@@ -26,23 +26,23 @@ else if (c > 5)
 ";
     private string extraLib = @"
 /**
- * R_ROD_N: 电抗器拉杆数量
+ * Some_Builtin_Variable: some builtin variable
  */
-declare var $R_ROD_X: number;
+declare var $Some_Builtin_Variable: number;
 
 /**
- * 产生一个校验错误记录
- * @param message - 错误消息
- * @returns 结果
+ * raise an error
+ * @param message - error message
+ * @returns void
  */
-declare function raiseError(message: string): number;
+declare function raiseError(message: string): void;
 
 /**
- * 产生一个校验警告记录
- * @param message - 警告消息
- * @returns 结果
+ * raise a warning
+ * @param message - warning message
+ * @returns void
  */
-declare function raiseWarning(message: string): number;
+declare function raiseWarning(message: string): void;
 
 ";
     private string? validationResult;

@@ -2,6 +2,95 @@
 
 A Blazor wrapper for Monaco Editor.
 
+## minimun example
+```razor
+@using BlazorMonacoEditor
+@rendermode InteractiveServer
+<CodeEditor Code="@Code" CodeLanguage="javascript" />
+
+@code {
+    private string Code = "var a = 1;";
+}
+```
+
+## get value
+```razor
+@using BlazorMonacoEditor
+@rendermode InteractiveServer
+<CodeEditor Code="@Code" CodeLanguage="javascript" />
+<button @onclick="GetValue">Get Value</button>
+@code {
+    private CodeEditor editor = default!;
+    private string Code = "var a = 1;";
+    private async Task GetValue()
+    {
+        var result = await editor.Validate();
+    }
+```
+
+## with custom defined objects and validator
+```razor
+@using BlazorMonacoEditor
+@rendermode InteractiveServer
+<CodeEditor @ref="editor" Code="@Code" CodeLanguage="javascript" ExtraLib="@extraLib" />
+<div>
+    <button @onclick="ValidateCode">Validate Code</button>
+</div>
+<div>
+<textarea @bind="validationResult" rows="10" cols="20" />
+</div>
+
+@code {
+    private CodeEditor editor = default!;
+    private string Code =
+@"let a = 1;
+let b = $Some_Builtin_Variable;
+let c = a + b;
+if ( c > 4)
+{
+    raiseError(""c might be too large"");
+}
+else if (c > 5)
+{
+    raiseError(""c is too large"");
+}
+";
+    private string extraLib = @"
+/**
+ * Some_Builtin_Variable: some builtin variable
+ */
+declare var $Some_Builtin_Variable: number;
+
+/**
+ * raise an error
+ * @param message - error message
+ * @returns void
+ */
+declare function raiseError(message: string): void;
+
+/**
+ * raise a warning
+ * @param message - warning message
+ * @returns void
+ */
+declare function raiseWarning(message: string): void;
+
+";
+    private string? validationResult;
+
+    private async Task ValidateCode()
+    {
+        var result = await editor.Validate();
+        validationResult = System.Text.Json.JsonSerializer.Serialize(
+            result,
+            new System.Text.Json.JsonSerializerOptions {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = true
+            }
+        );
+    }
+}
+```
 ## License
 
 Licensed under the [MIT](https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt) License.
