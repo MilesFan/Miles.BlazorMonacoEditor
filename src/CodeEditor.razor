@@ -69,7 +69,7 @@
         }
         catch (Exception)
         {
-            //Console.WriteLine("Error in disposing Monaco Editor.");
+            Console.WriteLine("Error in disposing Monaco Editor.");
         }
     }
 
@@ -82,21 +82,19 @@
                 // Load Monaco Editor if not available
                 if (typeof monaco === 'undefined') {
                     // Load require.js if not available
-                    let require_load_error = false;
                     if (typeof require === 'undefined') {
-                        await new Promise((resolve, reject) => {
+                        const existingScript = document.querySelector(`script[src='${baseuri}_content/${packagename}/monaco-editor/min/vs/loader.js']`);
+                        if (!existingScript) {
                             const script = document.createElement('script');
                             script.src = `${baseuri}_content/${packagename}/monaco-editor/min/vs/loader.js`;
                             script.type = 'text/javascript';
-                            script.onload = resolve;
-                            script.onerror = () => {
-                                require_load_error = true;
-                                reject(new Error('Failed to load require.js script'));
-                            }
                             document.body.appendChild(script);
-                        });
+                        }
                     }
-                    if (require_load_error) return null;
+                    while(typeof require === 'undefined')
+                    {
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    }
                     // Configure require and load Monaco
                     require.config({
                         paths: {
@@ -111,7 +109,7 @@
                             reject(new Error(`Failed to load Monaco editor: ${error}`));
                         });
                     });
-                    if (require_load_error) return null;
+                    if (editor_load_error) return null;
                 }
 
                 // Configure TypeScript/Javascript defaults and create editor
@@ -132,7 +130,6 @@
                     hideCursorInOverviewRuler: true,
                     fontLigatures: ''
                 });
-
                 return editor;
             }
             catch (e) {
@@ -149,6 +146,7 @@
         
         try
         {
+            //editor = await js.InvokeAsync<IJSObjectReference>("eval", s);
             editor = await func.InvokeAsync<IJSObjectReference>("initEditor", element, nav.BaseUri, packagename, ExtraLib, CodeLanguage);
             if (editor == null)
             {

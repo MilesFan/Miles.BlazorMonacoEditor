@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using BlazorMonacoEditor
 @rendermode InteractiveServer
-
 <CodeEditor @ref="editor" Code="@Code" CodeLanguage="javascript" ExtraLib="@extraLib" />
 <div>
     <button @onclick="ValidateCode">Validate Code</button>
